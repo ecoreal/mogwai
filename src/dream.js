@@ -15,7 +15,7 @@ function keywords(text, n = 3) {
     .slice(0, n).map(([w]) => w);
 }
 
-export function dream(brain) {
+export async function dream(brain, polish = null) {
   const coldDir = join(brain.path, 'memory', 'cold');
   if (!existsSync(coldDir)) return { dreamed: 0, fact: null };
   const files = readdirSync(coldDir).filter(f => f.endsWith('.md'));
@@ -30,7 +30,13 @@ export function dream(brain) {
 
   const kws = [...new Set(fresh.flatMap(x => keywords(x.body)))].slice(0, 4);
   const today = new Date().toISOString().slice(0, 10);
-  const fact = `dreamed: ${kws.join(', ')} (from ${fresh.length} faded memor${fresh.length === 1 ? 'y' : 'ies'})`;
+  let fact = `dreamed: ${kws.join(', ')} (from ${fresh.length} faded memor${fresh.length === 1 ? 'y' : 'ies'})`;
+  if (polish) {
+    try {
+      const distilled = await polish(fresh.map(x => x.body.split('\n')[0]).join('\n'), brain);
+      if (distilled) fact = `dreamed: ${distilled}`;
+    } catch { /* offline/heh — heuristic fact stands */ }
+  }
   appendFileSync(join(brain.path, 'memory', 'semantic.md'), `- ${today} ${fact}\n`);
   for (const x of fresh) appendFileSync(join(coldDir, x.file), `\n> dreamed ${today}\n`);
   commit(brain.path, `💭 dreamed: ${kws.slice(0, 2).join(', ')}`);

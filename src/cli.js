@@ -177,7 +177,8 @@ export async function main(argv) {
 
   if (cmd === 'dream') {
     const { dream } = await import('./dream.js');
-    const r = dream(brain);
+    const { distill } = await import('./llm.js');
+    const r = await dream(brain, distill);
     if (!r.dreamed) console.log(QUIET ? 'nothing to dream' : '😴 nothing to dream — no faded memories yet');
     else console.log(QUIET ? `distilled ${r.dreamed} memories` : `💭 dreamed: ${r.dreamed} faded memories became "${r.fact}"`);
     return;
