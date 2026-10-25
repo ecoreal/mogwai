@@ -114,3 +114,19 @@ test('dream distills hibernated memories into a semantic fact', async () => {
   assert.equal(again.dreamed, 0);
   rmSync(dir, { recursive: true, force: true });
 });
+
+test('chat recalls relevant memories by keyword (offline)', async () => {
+  const { chat, recallContext } = await import('../src/chat.js');
+  const dir = mkdtempSync(join(tmpdir(), 'mogwai-chat-'));
+  initBrain(dir, 'Chatty');
+  const brain = loadBrain(dir);
+  writeEpisodic(brain, 'the redis cache kept expiring too early', { importance: 0.6, tags: [] });
+  writeEpisodic(brain, 'shipped the login fix', { importance: 0.75, tags: [] });
+  const r = await chat(brain, 'what about the redis cache problem');
+  assert.equal(r.mode, 'offline');
+  assert.ok(r.memories.length >= 1);
+  assert.match(r.memories[0].body, /redis/);
+  const none = await chat(brain, 'quantum thermodynamics of giraffes');
+  assert.match(none.reply, /don.t remember/);
+  rmSync(dir, { recursive: true, force: true });
+});

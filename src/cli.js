@@ -13,6 +13,7 @@ const HELP = `🐾 mogwai ${VERSION} — a pet with a git repo for a brain
 usage:
   mogwai init [--name Momo] [--path DIR]     create the brain (a git repo)
   mogwai feed "shipped v0.1 today"           it remembers, and grows a little
+  mogwai chat "the redis thing"            it remembers aloud (LLM voice optional)
   mogwai remember "coffee goes in cups"      a fact for the semantic shelf
   mogwai forget <word>                       deliberate forgetting (git mv — reversible)
   mogwai diary                               it writes today's page (offline; LLM optional)
@@ -172,6 +173,19 @@ export async function main(argv) {
       return;
     }
     console.log(`🧠 pushed ${growthRings(path)} memories' worth of commits to ${origin.out.trim()}`);
+    return;
+  }
+
+  if (cmd === 'chat') {
+    if (!text) { console.error('chat about what? — mogwai chat "the redis thing"'); process.exitCode = 1; return; }
+    const { chat } = await import('./chat.js');
+    const { converse } = await import('./llm.js');
+    const r = await chat(brain, text, converse);
+    if (QUIET) { r.memories.forEach(m => console.log(`- ${m.body.split('\n')[0]}`)); if (r.mode === 'llm') console.log(r.reply); }
+    else {
+      console.log(r.mode === 'llm' ? r.reply : `🐾 ${r.reply}`);
+      if (r.memories.length && r.mode === 'llm') console.log(`\n(based on ${r.memories.length} warm memor${r.memories.length === 1 ? 'y' : 'ies'})`);
+    }
     return;
   }
 

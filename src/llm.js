@@ -6,6 +6,31 @@ export function hasKey() {
 
 import { voicePrompt } from './personality.js';
 
+export async function converse(userMsg, brain) {
+  const key = process.env.MOGWAI_API_KEY || process.env.OPENAI_API_KEY;
+  if (!key) return null;
+  const base = (process.env.MOGWAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/$/, '');
+  const model = process.env.MOGWAI_MODEL || 'gpt-4o-mini';
+  const { voicePrompt } = await import('./personality.js');
+  try {
+    const res = await fetch(`${base}/chat/completions`, {
+      method: 'POST',
+      headers: { 'content-type': 'application/json', authorization: `Bearer ${key}` },
+      body: JSON.stringify({
+        model,
+        messages: [
+          { role: 'system', content: voicePrompt(brain.state.name, brain.traits, brain.state.mood || 'curious', brain.state.bond) + ' You are chatting about your own memories; only reference what is in the context.' },
+          { role: 'user', content: userMsg },
+        ],
+        max_tokens: 300, temperature: 0.8,
+      }),
+      signal: AbortSignal.timeout(Number(process.env.MOGWAI_TIMEOUT_MS) || 10000),
+    });
+    const j = await res.json();
+    return j.choices?.[0]?.message?.content?.trim() || null;
+  } catch { return null; }
+}
+
 export async function distill(text, brain) {
   const key = process.env.MOGWAI_API_KEY || process.env.OPENAI_API_KEY;
   if (!key) return null;
