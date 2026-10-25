@@ -1,6 +1,6 @@
 # Changelog
 
-## 0.1.1 (unreleased)
+## 0.1.1 (2026-10-25)
 
 - ✨ `mogwai sync` — push/pull the brain to any git remote (same pet, many machines)
 - 🩺 `mogwai vet` — brain checkup: git fsck, drift detection, fading-memory forecast; `--json` for cron
