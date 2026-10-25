@@ -17,6 +17,7 @@ usage:
   mogwai forget <word>                       deliberate forgetting (git mv — reversible)
   mogwai diary                               it writes today's page (offline; LLM optional)
   mogwai stats                               the pet, its traits, its growth rings
+  mogwai dream                              faded memories distill into facts
   mogwai vet                                 brain checkup: git, drift, fading memories
   mogwai sync [--remote URL] [--pull]        push/pull the brain — it's just git
 
@@ -171,6 +172,14 @@ export async function main(argv) {
       return;
     }
     console.log(`🧠 pushed ${growthRings(path)} memories' worth of commits to ${origin.out.trim()}`);
+    return;
+  }
+
+  if (cmd === 'dream') {
+    const { dream } = await import('./dream.js');
+    const r = dream(brain);
+    if (!r.dreamed) console.log(QUIET ? 'nothing to dream' : '😴 nothing to dream — no faded memories yet');
+    else console.log(QUIET ? `distilled ${r.dreamed} memories` : `💭 dreamed: ${r.dreamed} faded memories became "${r.fact}"`);
     return;
   }
 

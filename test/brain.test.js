@@ -93,3 +93,24 @@ test('voice prompt is built from the actual trait numbers', () => {
   assert.match(p, /Mood today: smug/);
   assert.match(p, /companion/);                 // bond 42 → companion
 });
+
+test('dream distills hibernated memories into a semantic fact', async () => {
+  const { dream } = await import('../src/dream.js');
+  const { writeFileSync: wf, readFileSync: rf, mkdirSync: md } = await import('node:fs');
+  const dir = mkdtempSync(join(tmpdir(), 'mogwai-dream-'));
+  initBrain(dir, 'Dreamer');
+  const brain = loadBrain(dir);
+  const cold = join(dir, 'memory', 'cold');
+  md(cold, { recursive: true });
+  wf(join(cold, 'a.md'), '---\nts: 2026-09-01T00:00:00.000Z\nimportance: 0.3\ntags:\n---\n\nthe postgres migration failed twice on friday\n');
+  wf(join(cold, 'b.md'), '---\nts: 2026-09-02T00:00:00.000Z\nimportance: 0.3\ntags:\n---\n\npostgres replication lag after migration\n');
+  const r = dream(brain);
+  assert.equal(r.dreamed, 2);
+  assert.match(r.fact, /postgres/);
+  assert.match(r.fact, /2 faded memories/);
+  assert.match(rf(join(dir, 'memory', 'semantic.md'), 'utf8'), /- \d{4}-\d{2}-\d{2} dreamed: /);
+  // dreaming twice is a no-op (sources already marked)
+  const again = dream(brain);
+  assert.equal(again.dreamed, 0);
+  rmSync(dir, { recursive: true, force: true });
+});
