@@ -72,3 +72,22 @@ test('mogwai pet: oneline and face variants (CLI)', async () => {
   assert.match(full, /← Pico, egg/);
   rmSync(dir, { recursive: true, force: true });
 });
+
+test('mogwai adopt: clones a synced brain, resets bond, refuses non-brains', async () => {
+  const { execFileSync } = await import('node:child_process');
+  const { fileURLToPath } = await import('node:url');
+  const cli = join(fileURLToPath(new URL('.', import.meta.url)), '..', 'bin', 'mogwai.js');
+  const base = mkdtempSync(join(tmpdir(), 'mogwai-adopt-'));
+  const src = join(base, 'src'), remote = join(base, 'r.git'), dst = join(base, 'dst');
+  const env = { ...process.env, MOGWAI_HOME: src };
+  execFileSync(process.execPath, [cli, 'init', '--name', 'Roam', '--path', src], { encoding: 'utf8' });
+  execFileSync(process.execPath, [cli, 'feed', 'adopted memory one', '--path', src], { encoding: 'utf8', env });
+  execFileSync(process.execPath, [cli, 'sync', '--remote', remote, '--path', src], { encoding: 'utf8', env });
+  const out = execFileSync(process.execPath, [cli, 'adopt', remote, '--path', dst], { encoding: 'utf8' });
+  assert.match(out, /Roam moved in/);
+  assert.match(out, /bond reset/);
+  const adopted = loadBrain(dst);
+  assert.equal(adopted.state.bond, 0);
+  assert.equal(adopted.state.name, 'Roam');
+  rmSync(base, { recursive: true, force: true });
+});

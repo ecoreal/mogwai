@@ -73,6 +73,7 @@ mogwai forget <word>                      deliberate, reversible forgetting
 mogwai diary                              today's page, in its voice
 mogwai dream                              faded memories distill into facts
 mogwai recall / stats / vet               what it remembers / who it's becoming / health
+mogwai sync --remote <url>                push the brain; `adopt` pulls someone else's
 mogwai pet [--oneline]                    just the pet — put it in your shell prompt
 mogwai export [--out FILE]                the brain as a shareable HTML scrapbook
 ```

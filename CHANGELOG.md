@@ -16,6 +16,8 @@
 
 - 🐚 `mogwai pet [--oneline]` — the pet in your shell prompt (PS1 integration)
 
+- 🤝 `mogwai adopt <git-url>` — adopt a shared brain (clone + validate + bond reset)
+
 ## 0.1.1 (2026-10-25)
 
 - ✨ `mogwai sync` — push/pull the brain to any git remote (same pet, many machines)

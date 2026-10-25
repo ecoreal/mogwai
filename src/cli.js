@@ -3,7 +3,7 @@ import { writeEpisodic, sweepDecay, forget, remember, listEpisodic, HIBERNATE_AT
 import { classify, drift, moodOf, reaction, bondLevel } from './personality.js';
 import { writeDiary, readDiary } from './diary.js';
 import { statsLines } from './render.js';
-import { existsSync, readdirSync, readFileSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 
 const VERSION = '0.1.0';
@@ -18,6 +18,7 @@ usage:
   mogwai forget <word>                       deliberate forgetting (git mv — reversible)
   mogwai diary [--tail N | --all]            write today's page / read (no bond)
   mogwai watch                               the pet, alive (full-screen; q quits)
+  mogwai adopt <git-url> [--path DIR]        adopt a shared brain (bond resets)
   mogwai pet [--oneline]                     just the pet (PS1='$(mogwai pet --oneline) \\$ ')
   mogwai export [--out FILE]                 the brain as a shareable HTML scrapbook
   mogwai stats                               the pet, its traits, its growth rings
@@ -62,6 +63,33 @@ export async function main(argv) {
       : `🐣 ${name} took first breath at ${path}\n   try: mogwai feed "hello world" --path ${path}`);
     return;
   }
+
+  if (cmd === 'adopt') {
+    const url = flags._[0];
+    if (!url) { console.error('adopt what? — mogwai adopt <git-url> [--path DIR]'); process.exitCode = 1; return; }
+    if (existsSync(join(path, 'state.json'))) { console.error(`a brain already lives at ${path} — pass --path to choose another home`); process.exitCode = 1; return; }
+    console.log(`🐕 adopting from ${url} …`);
+    const { spawnSync } = await import('node:child_process');
+    // synced brains always live on main (sync does branch -M main); bare
+    // repos' HEAD often points elsewhere, so check out main explicitly
+    let r = spawnSync('git', ['clone', '--quiet', '--branch', 'main', url, path], { encoding: 'utf8' });
+    if (r.status !== 0) r = spawnSync('git', ['clone', '--quiet', url, path], { encoding: 'utf8' });
+    if (r.status !== 0) {
+      rmSync(path, { recursive: true, force: true }); // don't leave husks
+      console.error('clone failed: ' + (r.stderr || '').trim());
+      process.exitCode = 1;
+      return;
+    }
+    const adopted = loadBrain(path);
+    if (!adopted) { console.error('not a mogwai brain (no state.json) — refusing'); process.exitCode = 1; return; }
+    adopted.state.bond = 0; // bonds are earned, not inherited
+    saveBrain(adopted);
+    commit(path, '🤝 adopted (bond reset — trust is rebuilt)');
+    console.log(`🤝 ${adopted.state.name} moved in at ${path}`);
+    console.log(`   ${growthRings(path)} memories' worth of history · bond reset to 0 — say hi: mogwai feed "hello"`);
+    return;
+  }
+
 
   const brain = loadBrain(path);
   if (!brain) {
