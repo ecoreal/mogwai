@@ -3,7 +3,7 @@
 // brain is files). Offline: it "remembers aloud". With a key: it answers
 // in its trait-derived voice.
 import { listEpisodic } from './memory.js';
-import { readFileSync, existsSync } from 'node:fs';
+import { readFileSync, existsSync, writeFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const STOP = new Set(['the', 'a', 'an', 'and', 'or', 'to', 'of', 'in', 'on', 'is', 'was', 'what', 'how', 'why', 'did', 'do', 'you', 'i', 'me', 'my']);
@@ -30,8 +30,32 @@ export function facts(brain, n = 5) {
   return readFileSync(file, 'utf8').split('\n').filter(l => l.startsWith('- ')).slice(-n);
 }
 
+const FOLLOWUP = /^(--|more\b|that\b)/i;
+
+function loadLast(brain) {
+  try { return JSON.parse(readFileSync(join(brain.path, 'memory', 'chat.json'), 'utf8')); } catch { return null; }
+}
+function saveLast(brain, query, titles) {
+  writeFileSync(join(brain.path, 'memory', 'chat.json'), JSON.stringify({ query, titles, at: new Date().toISOString() }, null, 2));
+}
+
 export async function chat(brain, query, llm = null) {
-  const memories = recallContext(brain, query);
+  const last = loadLast(brain);
+  if (last && FOLLOWUP.test(query.trim())) {
+    // continue: re-rank the previous recalled set against the new words
+    const all = listEpisodic(brain);
+    const prev = all.filter(m => last.titles.includes(m.body.split('\n')[0]));
+    const reRanked = recallContext(brain, `${last.query} ${query.replace(/^--\s*/, '')}`)
+      .concat(prev.filter(p => !recallContext(brain, query).includes(p)));
+    if (reRanked.length) {
+      query = `${last.query} ${query.replace(/^--\s*/, '')}`; // context for the LLM path
+      var memories = reRanked.slice(0, 3);
+    } else {
+      var memories = recallContext(brain, query);
+    }
+  } else {
+    var memories = recallContext(brain, query);
+  }
   const known = facts(brain);
   if (llm) {
     const context = [
@@ -46,6 +70,7 @@ export async function chat(brain, query, llm = null) {
   if (!memories.length) {
     return { mode: 'offline', reply: `…I don't remember anything about that yet. Feed me: mogwai feed "${query.slice(0, 30)}"`, memories: [] };
   }
+  saveLast(brain, query, memories.map(m => m.body.split('\n')[0]));
   const lines = memories.map(m => `- ${m.body.split('\n')[0]}`);
   return { mode: 'offline', reply: `that stirs something —\n${lines.join('\n')}`, memories };
 }

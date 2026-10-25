@@ -132,7 +132,8 @@ export async function main(argv) {
       facts: (readFileLines(join(path, 'memory', 'semantic.md')) || []).filter(l => l.startsWith('- ')).length,
     };
     saveBrain(brain);
-    console.log(statsLines(brain, counts, growthRings(path)).join('\n'));
+    const override = Number(process.env.MOGWAI_BIRTH_OVERRIDE); // days, for demos/tests
+    console.log(statsLines(brain, counts, growthRings(path), Number.isFinite(override) ? override : undefined).join('\n'));
     return;
   }
 
