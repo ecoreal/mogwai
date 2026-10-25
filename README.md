@@ -56,7 +56,8 @@ mogwai feed "shipped v0.1"                it remembers, and grows a little
 mogwai remember "coffee goes in cups"     a fact for the semantic shelf
 mogwai forget <word>                      deliberate, reversible forgetting
 mogwai diary                              today's page, in its voice
-mogwai recall / stats                     what it remembers / who it's becoming
+mogwai dream                              faded memories distill into facts
+mogwai recall / stats / vet               what it remembers / who it's becoming / health
 ```
 
 The brain lives at `--path`, `$MOGWAI_HOME`, or `~/.local/share/mogwai`. Git commits use a detached identity (`user.name=mogwai`) — your gitconfig is never touched.
