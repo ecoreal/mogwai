@@ -4,12 +4,10 @@ import { execFileSync } from 'node:child_process';
 import { mkdtempSync, rmSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const bin = join(dirname(), '..', 'bin', 'mogwai.js');
-function dirname() {
-  return new URL('.', import.meta.url).pathname;
-}
-const run = (args, env) => execFileSync('node', [bin, ...args], { env: { ...process.env, ...env }, encoding: 'utf8' });
+const bin = join(fileURLToPath(new URL('.', import.meta.url)), '..', 'bin', 'mogwai.js');
+const run = (args, env) => execFileSync(process.execPath, [bin, ...args], { env: { ...process.env, ...env }, encoding: 'utf8' });
 
 test('sync pushes the brain to a remote and is idempotent', () => {
   const dir = mkdtempSync(join(tmpdir(), 'mogwai-sync-'));
