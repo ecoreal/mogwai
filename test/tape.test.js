@@ -171,3 +171,21 @@ test('feed --tape: zero-user session still works via fallback headline (CLI)', (
     rmSync(dir, { recursive: true, force: true });
   }
 });
+
+test('claude-code dialect: envelope messages count as steps', async () => {
+  const { summarizeTape } = await import('../src/tape.js');
+  const jsonl = [
+    JSON.stringify({ type: 'user', timestamp: 't', message: { role: 'user', content: 'find the login bug' } }),
+    JSON.stringify({ type: 'assistant', timestamp: 't', message: { role: 'assistant', content: [
+      { type: 'text', text: 'on it' },
+      { type: 'tool_use', id: 'x', name: 'Bash', input: { command: 'npm test' } },
+    ] } }),
+    JSON.stringify({ type: 'user', timestamp: 't', message: { role: 'user', content: [
+      { type: 'tool_result', tool_use_id: 'x', content: [{ type: 'text', text: '1 failed' }] },
+    ] } }),
+  ].join('\n');
+  const s = summarizeTape(jsonl);
+  assert.equal(s.steps, 4);
+  assert.equal(s.tools, 1);
+  assert.match(s.headline, /find the login bug/);
+});
