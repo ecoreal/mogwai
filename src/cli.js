@@ -16,7 +16,8 @@ usage:
   mogwai chat "the redis thing"            it remembers aloud (LLM voice optional)
   mogwai remember "coffee goes in cups"      a fact for the semantic shelf
   mogwai forget <word>                       deliberate forgetting (git mv — reversible)
-  mogwai diary                               it writes today's page (offline; LLM optional)
+  mogwai diary [--tail N | --all]            write today's page / read (no bond)
+  mogwai watch                               the pet, alive (full-screen; q quits)
   mogwai stats                               the pet, its traits, its growth rings
   mogwai dream                              faded memories distill into facts
   mogwai vet                                 brain checkup: git, drift, fading memories
@@ -41,10 +42,11 @@ export async function main(argv) {
     else if (a === '--remote') flags.remote = rest[++i];
     else if (a === '--json') flags.json = true;
     else if (a === '--tail') flags.tail = rest[++i];
+    else if (a === '--all') flags.all = true;
     else if (a === '-h' || a === '--help') flags.help = true;
     else flags._.push(a);
   }
-  const text = flags._.join(' ');
+  let text = flags._.join(" ");
   const path = brainPath(flags.path);
   if (!cmd || flags.help) { console.log(HELP); process.exitCode = cmd ? 0 : 1; return; }
 
@@ -69,6 +71,11 @@ export async function main(argv) {
   const hibernated = sweepDecay(brain);
 
   if (cmd === 'feed') {
+    if (text === '-') {
+      // pipe mode: echo "shipped x" | mogwai feed -
+      try { text = readFileSync(0, 'utf8').trim(); } catch { text = ''; }
+      if (!text) { console.error('feed -: stdin was empty'); process.exitCode = 1; return; }
+    }
     if (!text) { console.error('feed what? — mogwai feed "shipped v0.1"'); process.exitCode = 1; return; }
     const { importance, tags } = classify(text);
     writeEpisodic(brain, text, { importance, tags });
@@ -112,8 +119,8 @@ export async function main(argv) {
 
   if (cmd === 'diary') {
     const tail = Number(flags.tail) || 0;
-    if (tail > 0) { // read mode: show the last N lines without writing
-      console.log(readDiary(brain, tail));
+    if (tail > 0 || flags.all) { // read mode: no write, no bond
+      console.log(readDiary(brain, flags.all ? 0 : tail));
       return;
     }
     const page = await writeDiary(brain, hibernated);
@@ -174,6 +181,12 @@ export async function main(argv) {
       return;
     }
     console.log(`🧠 pushed ${growthRings(path)} memories' worth of commits to ${origin.out.trim()}`);
+    return;
+  }
+
+  if (cmd === 'watch') {
+    const { watch } = await import('./watch.js');
+    await watch(brain);
     return;
   }
 

@@ -6,6 +6,12 @@
 - 💬 chat continuity: follow-ups ("more", "that", "--") ride the previous recall set; failed lookups never clobber it
 - ✍️ 6 new reaction lines (curious/smug/proud)
 
+## Unreleased
+
+- 👁 `mogwai watch` — the pet, alive: full-screen stage art + trait bars + recent diary, breathing every 2s
+- 🔩 `mogwai feed -` reads from stdin (pipe-friendly); empty input fails cleanly
+- 📖 `mogwai diary --all` explicit full-diary read mode
+
 ## 0.1.1 (2026-10-25)
 
 - ✨ `mogwai sync` — push/pull the brain to any git remote (same pet, many machines)
