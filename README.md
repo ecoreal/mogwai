@@ -90,7 +90,7 @@ mogwai's memory model is intentionally simple and **inspectable**: you can `cd` 
 
 - ~~v0.2: `mogwai sync`~~ ✅ **shipped** — `mogwai sync --remote <url>` pushes the brain; same pet on every machine.
 - v0.3: `mogwai chat` — talk *about* its memories (context assembled from the warm shelf, not embeddings).
-- v0.4: personality-consistent LLM voice: traits steer the diary's system prompt, so a sassy pet writes sassy pages.
+- ~~v0.4: personality-consistent LLM voice~~ ✅ **shipped** — trait numbers literally become the diary system prompt (see `voicePrompt`).
 
 ## Contributing
 

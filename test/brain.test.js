@@ -5,7 +5,7 @@ import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { initBrain, loadBrain, saveBrain, growthRings, git } from '../src/brain.js';
 import { writeEpisodic, listEpisodic, sweepDecay, forget, decayWeight, HIBERNATE_AT } from '../src/memory.js';
-import { classify, drift, moodOf, bondLevel } from '../src/personality.js';
+import { classify, drift, moodOf, bondLevel, voicePrompt } from '../src/personality.js';
 import { writeDiary } from '../src/diary.js';
 
 function tmpBrain(name = 'Momo') {
@@ -81,4 +81,15 @@ test('moods and bond levels behave', () => {
   assert.equal(moodOf({ energy: 80 }, traits, 0.85), 'proud');
   assert.equal(bondLevel(0), 'stranger');
   assert.equal(bondLevel(100), 'soulmate');
+});
+
+test('voice prompt is built from the actual trait numbers', () => {
+  const traits = { curiosity: 0.8, courage: 0.2, warmth: 0.9, sass: 0.7, focus: 0.3 };
+  const p = voicePrompt('Gizmo', traits, 'smug', 42);
+  assert.match(p, /You are Gizmo/);
+  assert.match(p, /cheeky/);                    // high sass → cheeky voice
+  assert.match(p, /affectionate/);              // high warmth
+  assert.match(p, /cautious/);                  // low courage
+  assert.match(p, /Mood today: smug/);
+  assert.match(p, /companion/);                 // bond 42 → companion
 });

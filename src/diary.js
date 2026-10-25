@@ -39,7 +39,7 @@ export async function writeDiary(brain, hibernated = []) {
   if (faded.length) page += '\n' + faded.join('\n') + '\n';
   page += `\n> ${reflect(mood, brain.traits, Number(today.slice(-2)))}\n`;
 
-  const voiced = await polish(page, brain.state.name);
+  const voiced = await polish(page, brain);
   if (voiced) page = voiced.endsWith('\n') ? voiced : voiced + '\n';
 
   // one page per day: re-running `mogwai diary` rewrites today's page

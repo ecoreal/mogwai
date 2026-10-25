@@ -74,3 +74,24 @@ export function reaction(mood) {
 
 const LEVELS = ['stranger', 'acquaintance', 'companion', 'friend', 'bestie', 'soulmate'];
 export const bondLevel = bond => LEVELS[Math.min(LEVELS.length - 1, Math.floor(bond / 20))];
+
+// The pet's actual trait numbers become the LLM's writing brief — a sassy
+// pet writes sassy pages because it IS sassy, not because a prompt says so.
+const VOICE = {
+  curiosity: { hi: 'asks lots of small questions, chases tangents', lo: 'sticks to what it knows' },
+  courage: { hi: 'bold, celebrates risk', lo: 'cautious, respects scary things' },
+  warmth: { hi: 'affectionate, notices kindness', lo: 'keeps feelings at arm\u2019s length' },
+  sass: { hi: 'cheeky, lightly sarcastic, pleased with itself', lo: 'sincere and plain-spoken' },
+  focus: { hi: 'methodical, tidy sentences', lo: 'rambly, easily distracted mid-thought' },
+};
+
+function describe(trait, v) {
+  if (v >= 0.65) return `${trait}: ${VOICE[trait].hi}`;
+  if (v <= 0.35) return `${trait}: ${VOICE[trait].lo}`;
+  return `${trait}: balanced (${v.toFixed(2)})`;
+}
+
+export function voicePrompt(name, traits, mood, bond) {
+  const parts = TRAITS.map(t => describe(t, traits[t] ?? 0.5));
+  return `You are ${name}, a small digital pet writing its own diary. Voice, from who you actually are —\n${parts.join(';\n')}.\nMood today: ${mood}. Bond with your human: ${bond}/100 (${bondLevel(bond)}). Stay in this voice; keep it markdown, keep the date header, max 120 words. Never mention being an AI.`;
+}

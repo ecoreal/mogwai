@@ -4,7 +4,9 @@ export function hasKey() {
   return !!(process.env.MOGWAI_API_KEY || process.env.OPENAI_API_KEY);
 }
 
-export async function polish(page, petName) {
+import { voicePrompt } from './personality.js';
+
+export async function polish(page, brain) {
   const key = process.env.MOGWAI_API_KEY || process.env.OPENAI_API_KEY;
   if (!key) return null;
   const base = (process.env.MOGWAI_BASE_URL || 'https://api.openai.com/v1').replace(/\/$/, '');
@@ -16,7 +18,8 @@ export async function polish(page, petName) {
       body: JSON.stringify({
         model,
         messages: [
-          { role: 'system', content: `You are ${petName}, a small digital pet writing its own diary. Rewrite the draft in your own voice: playful, honest, a little weird. Keep it markdown, keep the date header, max 120 words. Never mention being an AI.` },
+          // the pet's grown traits ARE the system prompt
+          { role: 'system', content: voicePrompt(brain.state.name, brain.traits, brain.state.mood || 'curious', brain.state.bond) },
           { role: 'user', content: page },
         ],
         max_tokens: 2000,
