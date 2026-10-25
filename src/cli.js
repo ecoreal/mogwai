@@ -1,4 +1,4 @@
-import { brainPath, initBrain, loadBrain, saveBrain, commit, growthRings } from './brain.js';
+import { brainPath, initBrain, loadBrain, saveBrain, commit, growthRings, git } from './brain.js';
 import { writeEpisodic, sweepDecay, forget, remember, listEpisodic, HIBERNATE_AT } from './memory.js';
 import { classify, drift, moodOf, reaction, bondLevel } from './personality.js';
 import { writeDiary, readDiary } from './diary.js';
@@ -16,6 +16,7 @@ usage:
   mogwai forget <word>                       deliberate forgetting (git mv — reversible)
   mogwai diary                               it writes today's page (offline; LLM optional)
   mogwai stats                               the pet, its traits, its growth rings
+  mogwai sync [--remote URL] [--pull]        push/pull the brain — it's just git
 
 the brain lives at --path, $MOGWAI_HOME, or ~/.local/share/mogwai
 memories decay like Ebbinghaus curves; below weight ${HIBERNATE_AT} they hibernate to memory/cold/
@@ -33,6 +34,7 @@ export async function main(argv) {
     const a = rest[i];
     if (a === '--path') flags.path = rest[++i];
     else if (a === '--name') flags.name = rest[++i];
+    else if (a === '--remote') flags.remote = rest[++i];
     else if (a === '-h' || a === '--help') flags.help = true;
     else flags._.push(a);
   }
@@ -124,6 +126,39 @@ export async function main(argv) {
     const list = listEpisodic(brain);
     if (!list.length) { console.log('(nothing on the warm shelf — feed it something)'); return; }
     for (const m of list.slice(0, 20)) console.log(`  [${'▓'.repeat(Math.round(m.importance * 5)).padEnd(5, '░')}] ${m.body.split('\n')[0].slice(0, 60)}`);
+    return;
+  }
+
+  if (cmd === 'sync') {
+    const remote = flags.remote || null;
+    if (remote) {
+      const has = git(path, 'remote').out.trim().split('\n').includes('origin');
+      const r = has
+        ? git(path, 'remote', 'set-url', 'origin', remote)
+        : git(path, 'remote', 'add', 'origin', remote);
+      if (!r.ok) { console.error('could not set remote:', r.out.trim()); process.exitCode = 1; return; }
+      console.log(`🔗 remote origin → ${remote}`);
+    }
+    const origin = git(path, 'remote', 'get-url', 'origin');
+    if (!origin.ok) {
+      console.log(`no remote yet. give it one:\n  mogwai sync --remote git@github.com:you/mogwai-brain.git`);
+      process.exitCode = 1;
+      return;
+    }
+    git(path, 'branch', '-M', 'main');
+    const pull = flags._.includes('--pull');
+    if (pull) {
+      const p = git(path, 'pull', '--rebase', 'origin', 'main');
+      if (!p.ok) { console.error('pull failed:\n' + p.out.trim()); process.exitCode = 1; return; }
+      console.log('📥 pulled — new memories in.');
+    }
+    const push = git(path, 'push', '-u', 'origin', 'main');
+    if (!push.ok) {
+      console.error('push rejected — the remote brain has commits you lack.\nrun: mogwai sync --pull --path ' + path);
+      process.exitCode = 1;
+      return;
+    }
+    console.log(`🧠 pushed ${growthRings(path)} memories' worth of commits to ${origin.out.trim()}`);
     return;
   }
 

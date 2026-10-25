@@ -88,7 +88,7 @@ mogwai's memory model is intentionally simple and **inspectable**: you can `cd` 
 
 ## Roadmap
 
-- **v0.2:** `mogwai sync` — the brain is just a git repo, so push it to a private remote and keep the same pet on two machines.
+- ~~v0.2: `mogwai sync`~~ ✅ **shipped** — `mogwai sync --remote <url>` pushes the brain; same pet on every machine.
 - v0.3: `mogwai chat` — talk *about* its memories (context assembled from the warm shelf, not embeddings).
 - v0.4: personality-consistent LLM voice: traits steer the diary's system prompt, so a sassy pet writes sassy pages.
 
