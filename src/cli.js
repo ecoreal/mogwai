@@ -16,6 +16,7 @@ usage:
   mogwai forget <word>                       deliberate forgetting (git mv — reversible)
   mogwai diary                               it writes today's page (offline; LLM optional)
   mogwai stats                               the pet, its traits, its growth rings
+  mogwai vet                                 brain checkup: git, drift, fading memories
   mogwai sync [--remote URL] [--pull]        push/pull the brain — it's just git
 
 the brain lives at --path, $MOGWAI_HOME, or ~/.local/share/mogwai
@@ -159,6 +160,16 @@ export async function main(argv) {
       return;
     }
     console.log(`🧠 pushed ${growthRings(path)} memories' worth of commits to ${origin.out.trim()}`);
+    return;
+  }
+
+  if (cmd === 'vet') {
+    const { vet } = await import('./vet.js');
+    if (!existsSync(path)) { console.error(`no brain at ${path}`); process.exitCode = 1; return; }
+    const { lines, problems } = vet(path);
+    console.log(lines.join('\n'));
+    console.log(problems ? `\n🩺 ${problems} issue(s) need attention` : '\n🩺 all good — a healthy brain');
+    if (problems) process.exitCode = 1;
     return;
   }
 
