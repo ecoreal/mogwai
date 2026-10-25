@@ -94,6 +94,14 @@ $ '
 $ _
 ```
 
+## 🧩 the nova suite
+
+mogwai is part of a small family of zero-dependency terminal tools:
+
+- **[duel](https://github.com/ecoreal/duel)** — ⚔️ your agents fight; every match is a replayable file
+- **[mogwai](https://github.com/ecoreal/mogwai)** — 🐾 a pet whose brain is a git repo (`mogwai feed --tape <session>` eats this tool's sessions)
+- **[tape](https://github.com/ecoreal/tape)** — ⏪ time-travel debugger for AI agent sessions
+
 ## Why not...?
 
 | alternative | the problem |
