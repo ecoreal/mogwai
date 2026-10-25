@@ -73,6 +73,7 @@ mogwai forget <word>                      deliberate, reversible forgetting
 mogwai diary                              today's page, in its voice
 mogwai dream                              faded memories distill into facts
 mogwai recall / stats / vet               what it remembers / who it's becoming / health
+mogwai export [--out FILE]                the brain as a shareable HTML scrapbook
 ```
 
 The brain lives at `--path`, `$MOGWAI_HOME`, or `~/.local/share/mogwai`. Git commits use a detached identity (`user.name=mogwai`) — your gitconfig is never touched.

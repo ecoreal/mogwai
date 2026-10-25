@@ -12,6 +12,8 @@
 - 🔩 `mogwai feed -` reads from stdin (pipe-friendly); empty input fails cleanly
 - 📖 `mogwai diary --all` explicit full-diary read mode
 
+- 📕 `mogwai export` — the brain as a self-contained single-page HTML scrapbook (zero external URLs, XSS-escaped, mini markdown renderer)
+
 ## 0.1.1 (2026-10-25)
 
 - ✨ `mogwai sync` — push/pull the brain to any git remote (same pet, many machines)

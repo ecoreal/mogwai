@@ -18,6 +18,7 @@ usage:
   mogwai forget <word>                       deliberate forgetting (git mv — reversible)
   mogwai diary [--tail N | --all]            write today's page / read (no bond)
   mogwai watch                               the pet, alive (full-screen; q quits)
+  mogwai export [--out FILE]                 the brain as a shareable HTML scrapbook
   mogwai stats                               the pet, its traits, its growth rings
   mogwai dream                              faded memories distill into facts
   mogwai vet                                 brain checkup: git, drift, fading memories
@@ -43,6 +44,7 @@ export async function main(argv) {
     else if (a === '--json') flags.json = true;
     else if (a === '--tail') flags.tail = rest[++i];
     else if (a === '--all') flags.all = true;
+    else if (a === '--out') flags.out = rest[++i];
     else if (a === '-h' || a === '--help') flags.help = true;
     else flags._.push(a);
   }
@@ -181,6 +183,14 @@ export async function main(argv) {
       return;
     }
     console.log(`🧠 pushed ${growthRings(path)} memories' worth of commits to ${origin.out.trim()}`);
+    return;
+  }
+
+  if (cmd === 'export') {
+    const { exportBrain } = await import('./export.js');
+    const out = flags.out || `mogwai-${brain.state.name.toLowerCase()}.html`;
+    const r = exportBrain(brain, out);
+    console.log(QUIET ? `${r.path} ${r.bytes}` : `📕 ${brain.state.name}'s scrapbook → ${r.path} (${(r.bytes / 1024).toFixed(1)} KB)`);
     return;
   }
 
