@@ -39,6 +39,21 @@ npx mogwai-pet stats
 
 No API key needed. Works on a plane.
 
+## 💬 talk to it, check on it
+
+```
+$ mogwai chat "tape"
+🐾 that stirs something —
+- shipped tape v0.1 today
+
+$ mogwai dream
+💭 dreamed: 1 faded memories became "dreamed: replication, postgres, dawn (from 1 faded memory)"
+
+$ mogwai vet
+... 
+🩺 all good — a healthy brain
+```
+
 ## The idea
 
 Agent memory in 2026 is either a cloud vector database or an opaque file you'll never read. mogwai takes the opposite bet:
