@@ -14,6 +14,8 @@
 
 - 📕 `mogwai export` — the brain as a self-contained single-page HTML scrapbook (zero external URLs, XSS-escaped, mini markdown renderer)
 
+- 🐚 `mogwai pet [--oneline]` — the pet in your shell prompt (PS1 integration)
+
 ## 0.1.1 (2026-10-25)
 
 - ✨ `mogwai sync` — push/pull the brain to any git remote (same pet, many machines)

@@ -73,10 +73,24 @@ mogwai forget <word>                      deliberate, reversible forgetting
 mogwai diary                              today's page, in its voice
 mogwai dream                              faded memories distill into facts
 mogwai recall / stats / vet               what it remembers / who it's becoming / health
+mogwai pet [--oneline]                    just the pet — put it in your shell prompt
 mogwai export [--out FILE]                the brain as a shareable HTML scrapbook
 ```
 
 The brain lives at `--path`, `$MOGWAI_HOME`, or `~/.local/share/mogwai`. Git commits use a detached identity (`user.name=mogwai`) — your gitconfig is never touched.
+
+### 🐚 in your prompt
+
+```bash
+# .zshrc — every command starts with your pet's current mood
+PS1='$(mogwai pet --oneline 2>/dev/null)
+$ '
+```
+
+```
+( o.o ) Momo · sprout · curious
+$ _
+```
 
 ## Why not...?
 

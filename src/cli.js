@@ -18,6 +18,7 @@ usage:
   mogwai forget <word>                       deliberate forgetting (git mv — reversible)
   mogwai diary [--tail N | --all]            write today's page / read (no bond)
   mogwai watch                               the pet, alive (full-screen; q quits)
+  mogwai pet [--oneline]                     just the pet (PS1='$(mogwai pet --oneline) \\$ ')
   mogwai export [--out FILE]                 the brain as a shareable HTML scrapbook
   mogwai stats                               the pet, its traits, its growth rings
   mogwai dream                              faded memories distill into facts
@@ -45,6 +46,7 @@ export async function main(argv) {
     else if (a === '--tail') flags.tail = rest[++i];
     else if (a === '--all') flags.all = true;
     else if (a === '--out') flags.out = rest[++i];
+    else if (a === '--oneline') flags.oneline = true;
     else if (a === '-h' || a === '--help') flags.help = true;
     else flags._.push(a);
   }
@@ -183,6 +185,19 @@ export async function main(argv) {
       return;
     }
     console.log(`🧠 pushed ${growthRings(path)} memories' worth of commits to ${origin.out.trim()}`);
+    return;
+  }
+
+  if (cmd === 'pet') {
+    // shell-integration view: PS1='$(mogwai pet --oneline) \$ '
+    const { stageOf, ageDaysOf } = await import('./growth.js');
+    const override = Number(process.env.MOGWAI_BIRTH_OVERRIDE);
+    const days = Number.isFinite(override) ? override : ageDaysOf(brain.state.birth);
+    const stage = stageOf(days, brain.state.bond ?? 0);
+    const mood = brain.state.mood || 'curious';
+    const eyes = mood === 'sleepy' ? '-.-' : mood === 'smug' ? '¬.¬' : mood === 'in-the-zone' ? '-.-' : 'o.o';
+    if (flags.oneline) console.log(`( ${eyes} ) ${brain.state.name} · ${stage} · ${mood}`);
+    console.log(`   /\\_/\\\n  ( ${eyes} )\n   > ^ <   ← ${brain.state.name}, ${stage}, feeling ${mood}`);
     return;
   }
 

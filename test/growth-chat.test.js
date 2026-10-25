@@ -57,3 +57,18 @@ test('chat continuity: follow-ups ride the previous recall set', async () => {
   assert.equal(last.query, 'the redis cache more');
   rmSync(dir, { recursive: true, force: true });
 });
+
+test('mogwai pet: oneline and face variants (CLI)', async () => {
+  const { execFileSync } = await import('node:child_process');
+  const { fileURLToPath } = await import('node:url');
+  const cli = join(fileURLToPath(new URL('.', import.meta.url)), '..', 'bin', 'mogwai.js');
+  const dir = mkdtempSync(join(tmpdir(), 'mogwai-pet-'));
+  const env = { ...process.env, MOGWAI_HOME: join(dir, 'brain'), MOGWAI_BIRTH_OVERRIDE: '0' };
+  execFileSync(process.execPath, [cli, 'init', '--name', 'Pico', '--path', join(dir, 'brain')], { encoding: 'utf8' });
+  const one = execFileSync(process.execPath, [cli, 'pet', '--oneline', '--path', join(dir, 'brain')], { encoding: 'utf8', env });
+  assert.match(one, /^\( o\.o \) Pico · egg · /);
+  const full = execFileSync(process.execPath, [cli, 'pet', '--path', join(dir, 'brain')], { encoding: 'utf8', env });
+  assert.match(full, /\( o\.o \)/);
+  assert.match(full, /← Pico, egg/);
+  rmSync(dir, { recursive: true, force: true });
+});
