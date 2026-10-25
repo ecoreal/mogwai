@@ -7,6 +7,7 @@ import { existsSync, readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
 const VERSION = '0.1.0';
+const QUIET = process.env.MOGWAI_QUIET === '1'; // cron mode: facts, no flavor
 const HELP = `🐾 mogwai ${VERSION} — a pet with a git repo for a brain
 
 usage:
@@ -36,6 +37,7 @@ export async function main(argv) {
     if (a === '--path') flags.path = rest[++i];
     else if (a === '--name') flags.name = rest[++i];
     else if (a === '--remote') flags.remote = rest[++i];
+    else if (a === '--json') flags.json = true;
     else if (a === '-h' || a === '--help') flags.help = true;
     else flags._.push(a);
   }
@@ -76,8 +78,11 @@ export async function main(argv) {
     brain.state.mood = mood;
     saveBrain(brain);
     commit(path, `🌱 grew from: ${text.slice(0, 40)}`);
-    console.log(`🐾 ${reaction(mood)}`);
-    if (hibernated.length) console.log(`   ( ${hibernated.length} old memor${hibernated.length === 1 ? 'y fades' : 'ies fade'} to cold storage )`);
+    if (QUIET) console.log(`stored · importance ${importance} · energy ${brain.state.energy} · bond ${brain.state.bond}`);
+    else {
+      console.log(`🐾 ${reaction(mood)}`);
+      if (hibernated.length) console.log(`   ( ${hibernated.length} old memor${hibernated.length === 1 ? 'y fades' : 'ies fade'} to cold storage )`);
+    }
     return;
   }
 
@@ -167,8 +172,11 @@ export async function main(argv) {
     const { vet } = await import('./vet.js');
     if (!existsSync(path)) { console.error(`no brain at ${path}`); process.exitCode = 1; return; }
     const { lines, problems } = vet(path);
-    console.log(lines.join('\n'));
-    console.log(problems ? `\n🩺 ${problems} issue(s) need attention` : '\n🩺 all good — a healthy brain');
+    if (flags.json) console.log(JSON.stringify({ ok: problems === 0, problems: problems.length ? lines.filter(l => l.startsWith('✗')) : [], info: lines }));
+    else {
+      console.log(lines.join('\n'));
+      console.log(problems ? `\n🩺 ${problems} issue(s) need attention` : '\n🩺 all good — a healthy brain');
+    }
     if (problems) process.exitCode = 1;
     return;
   }

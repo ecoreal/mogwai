@@ -48,3 +48,28 @@ test('vet predicts the next memory to fade', () => {
   assert.ok(lines.some(l => l.includes('next to fade')));
   rmSync(dir, { recursive: true, force: true });
 });
+
+test('vet --json emits machine-readable output (via CLI)', async () => {
+  const dir = brainWith();
+  const { execFileSync } = await import('node:child_process');
+  const { fileURLToPath } = await import('node:url');
+  const cli = join(fileURLToPath(new URL('.', import.meta.url)), '..', 'bin', 'mogwai.js');
+  const out = execFileSync(process.execPath, [cli, 'vet', '--json', '--path', dir], { encoding: 'utf8' });
+  const j = JSON.parse(out);
+  assert.equal(j.ok, true);
+  assert.ok(Array.isArray(j.info));
+  rmSync(dir, { recursive: true, force: true });
+});
+
+test('MOGWAI_QUIET=1 feed prints facts, no flavor (via CLI)', async () => {
+  const dir = brainWith();
+  const { execFileSync } = await import('node:child_process');
+  const { fileURLToPath } = await import('node:url');
+  const cli = join(fileURLToPath(new URL('.', import.meta.url)), '..', 'bin', 'mogwai.js');
+  const out = execFileSync(process.execPath, [cli, 'feed', 'shipped a thing', '--path', dir], {
+    encoding: 'utf8', env: { ...process.env, MOGWAI_QUIET: '1' },
+  });
+  assert.match(out, /^stored · importance/);
+  assert.ok(!out.includes('🐾'));
+  rmSync(dir, { recursive: true, force: true });
+});
