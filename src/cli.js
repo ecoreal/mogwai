@@ -38,6 +38,7 @@ export async function main(argv) {
     else if (a === '--name') flags.name = rest[++i];
     else if (a === '--remote') flags.remote = rest[++i];
     else if (a === '--json') flags.json = true;
+    else if (a === '--tail') flags.tail = rest[++i];
     else if (a === '-h' || a === '--help') flags.help = true;
     else flags._.push(a);
   }
@@ -108,6 +109,11 @@ export async function main(argv) {
   }
 
   if (cmd === 'diary') {
+    const tail = Number(flags.tail) || 0;
+    if (tail > 0) { // read mode: show the last N lines without writing
+      console.log(readDiary(brain, tail));
+      return;
+    }
     const page = await writeDiary(brain, hibernated);
     saveBrain(brain);
     console.log(page);
