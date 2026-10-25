@@ -1,0 +1,25 @@
+name: CI
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  test:
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+        node: [18, 20, 22, 24]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - run: npm test
+      - name: smoke (a pet is born and writes its diary)
+        run: |
+          node bin/mogwai.js init --path "$RUNNER_TEMP/brain" --name CI
+          node bin/mogwai.js feed "green tests on ${{ matrix.os }}" --path "$RUNNER_TEMP/brain"
+          node bin/mogwai.js diary --path "$RUNNER_TEMP/brain"

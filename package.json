@@ -1,0 +1,19 @@
+{
+  "name": "mogwai-pet",
+  "version": "0.1.0",
+  "description": "🐾 mogwai — a pet for your terminal, with a git repo for a brain. Memories decay, personality drifts, forgetting is reversible.",
+  "type": "module",
+  "bin": { "mogwai": "bin/mogwai.js" },
+  "engines": { "node": ">=18" },
+  "scripts": { "test": "node --test" },
+  "keywords": [
+    "ai-agents", "tamagotchi", "memory", "git", "cli", "llm",
+    "local-first", "offline-first", "zero-dependency"
+  ],
+  "license": "MIT",
+  "author": "mogwai contributors",
+  "repository": { "type": "git", "url": "git+https://github.com/ecoreal/mogwai.git" },
+  "bugs": "https://github.com/ecoreal/mogwai/issues",
+  "homepage": "https://github.com/ecoreal/mogwai#readme",
+  "files": ["bin", "src"]
+}
