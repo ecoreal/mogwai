@@ -208,7 +208,11 @@ export async function main(argv) {
     }
     const push = git(path, 'push', '-u', 'origin', 'main');
     if (!push.ok) {
-      console.error('push rejected — the remote brain has commits you lack.\nrun: mogwai sync --pull --path ' + path);
+      if (/does not appear|not a git repository/i.test(push.out)) {
+        console.error(`remote is not a repository. create it first:\n  git init --bare <url>\nthen: mogwai sync --path ${path}`);
+      } else {
+        console.error('push rejected — the remote brain has commits you lack.\nrun: mogwai sync --pull --path ' + path);
+      }
       process.exitCode = 1;
       return;
     }

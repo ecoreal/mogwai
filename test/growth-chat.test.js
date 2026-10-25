@@ -79,6 +79,7 @@ test('mogwai adopt: clones a synced brain, resets bond, refuses non-brains', asy
   const cli = join(fileURLToPath(new URL('.', import.meta.url)), '..', 'bin', 'mogwai.js');
   const base = mkdtempSync(join(tmpdir(), 'mogwai-adopt-'));
   const src = join(base, 'src'), remote = join(base, 'r.git'), dst = join(base, 'dst');
+  execFileSync('git', ['init', '-q', '--bare', remote]);
   const env = { ...process.env, MOGWAI_HOME: src };
   execFileSync(process.execPath, [cli, 'init', '--name', 'Roam', '--path', src], { encoding: 'utf8' });
   execFileSync(process.execPath, [cli, 'feed', 'adopted memory one', '--path', src], { encoding: 'utf8', env });
