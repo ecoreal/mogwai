@@ -1,6 +1,7 @@
 import { brainPath, initBrain, loadBrain, saveBrain, commit, growthRings, git } from './brain.js';
 import { writeEpisodic, sweepDecay, forget, remember, listEpisodic, HIBERNATE_AT } from './memory.js';
 import { classify, drift, moodOf, reaction, bondLevel } from './personality.js';
+import { summarizeTapeFile } from './tape.js';
 import { writeDiary, readDiary } from './diary.js';
 import { statsLines } from './render.js';
 import { existsSync, readdirSync, readFileSync, rmSync } from 'node:fs';
@@ -13,6 +14,7 @@ const HELP = `🐾 mogwai ${VERSION} — a pet with a git repo for a brain
 usage:
   mogwai init [--name Momo] [--path DIR]     create the brain (a git repo)
   mogwai feed "shipped v0.1 today"           it remembers, and grows a little
+  mogwai feed --tape session.jsonl           it eats your coding sessions (agent JSONL)
   mogwai chat "the redis thing"            it remembers aloud (LLM voice optional)
   mogwai remember "coffee goes in cups"      a fact for the semantic shelf
   mogwai forget <word>                       deliberate forgetting (git mv — reversible)
@@ -47,6 +49,7 @@ export async function main(argv) {
     else if (a === '--tail') flags.tail = rest[++i];
     else if (a === '--all') flags.all = true;
     else if (a === '--out') flags.out = rest[++i];
+    else if (a === '--tape') flags.tape = rest[++i];
     else if (a === '--oneline') flags.oneline = true;
     else if (a === '-h' || a === '--help') flags.help = true;
     else flags._.push(a);
@@ -103,6 +106,30 @@ export async function main(argv) {
   const hibernated = sweepDecay(brain);
 
   if (cmd === 'feed') {
+    if (flags.tape) {
+      // the pet eats your coding sessions: one session → one summary memory
+      let s;
+      try { s = summarizeTapeFile(flags.tape); }
+      catch (e) {
+        console.error(`feed --tape: cannot read ${flags.tape} (${e.code === 'ENOENT' ? 'no such file' : e.message})`);
+        process.exitCode = 1;
+        return;
+      }
+      const counts = `${s.steps} step${s.steps === 1 ? '' : 's'} · ${s.tools} tool${s.tools === 1 ? '' : 's'} · ${s.errors} error${s.errors === 1 ? '' : 's'}`;
+      writeEpisodic(brain, `coded with tape: ${s.headline} (${counts})`, { importance: s.importance, tags: s.tags });
+      brain.traits = drift(brain.traits, s.headline);
+      brain.state.feeds += 1;
+      brain.state.energy = Math.max(0, brain.state.energy - 8);
+      brain.state.bond = Math.min(100, brain.state.bond + 2);
+      brain.state.lastEvent = new Date().toISOString();
+      const mood = moodOf(brain.state, brain.traits, s.importance);
+      brain.state.mood = mood;
+      saveBrain(brain);
+      commit(path, `🌱 lived through a coding session: ${s.headline.slice(0, 40)}`);
+      if (QUIET) console.log(`stored · importance ${s.importance} · energy ${brain.state.energy} · bond ${brain.state.bond}`);
+      else console.log(`🐾 ${reaction(mood)}\n   📼 ${counts}`);
+      return;
+    }
     if (text === '-') {
       // pipe mode: echo "shipped x" | mogwai feed -
       try { text = readFileSync(0, 'utf8').trim(); } catch { text = ''; }

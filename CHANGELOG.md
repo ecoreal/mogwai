@@ -2,6 +2,7 @@
 
 ## Unreleased
 
+- 📼 `mogwai feed --tape <session.jsonl>` — the pet eats your coding sessions: one agent session becomes one one-line summary memory (`steps · tools · errors`); rough nights (2+ errors) and ship/fix/deploy words weigh 0.75
 - 🥚 growth stages: egg → hatchling → sprout → young → adult → elder (age+bond gates), a distinct ASCII silhouette per stage; `MOGWAI_BIRTH_OVERRIDE` (days) for demos/tests
 - 💬 chat continuity: follow-ups ("more", "that", "--") ride the previous recall set; failed lookups never clobber it
 - ✍️ 6 new reaction lines (curious/smug/proud)

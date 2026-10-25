@@ -1,6 +1,6 @@
 # 🐾 mogwai
 
-**A pet for your terminal with a git repo for a brain. Memories decay, personality drifts, and forgetting is reversible.**
+**A pet for your terminal with a git repo for a brain. Memories decay, personality drifts, and forgetting is reversible — and it eats your coding sessions.**
 
 ```
    /\_/\
@@ -68,6 +68,7 @@ Agent memory in 2026 is either a cloud vector database or an opaque file you'll 
 ```
 mogwai init [--name Gizmo] [--path DIR]   create the brain (a git repo)
 mogwai feed "shipped v0.1"                it remembers, and grows a little
+mogwai feed --tape session.jsonl          it eats your coding sessions (agent JSONL)
 mogwai remember "coffee goes in cups"     a fact for the semantic shelf
 mogwai forget <word>                      deliberate, reversible forgetting
 mogwai diary                              today's page, in its voice
