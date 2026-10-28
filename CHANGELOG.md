@@ -2,6 +2,13 @@
 
 ## Unreleased
 
+- 🧬 `mogwai breed <other> --name Kid --path DIR` — two brains, one egg: traits are the parents' average plus a deterministic ±0.04 wobble (same parents + same name ⇒ same child), the strongest `--inherit N` memories from each side are carried over with `from:` provenance in the frontmatter and a `> inherited from <name>` line in the body, facts are union-deduped (cap 24), bond resets to 0. `parents.json` records each parent's name, birth, traits and commit hash; `LINEAGE.md` tells the story. Works with a local path or a git URL (cloned to a temp dir, read, discarded). Never overwrites an existing life.
+- 🧭 `mogwai family [--depth N]` — the ancestry tree: `← you are here`, both parents with their traits, grandparents when their brains are still on disk, and an `(elsewhere)` marker when a parent's brain has moved on. Founders get a friendly nudge, not an error.
+- 📕 `mogwai export` now shows the lineage section for bred pets (and stays silent for founders).
+- 🐛 `mogwai --help` alone printed "no brain at…" instead of the help: flags in the command position are now handled.
+- 🐛 two memories in the same second overwrote each other (`writeEpisodic` filename collision); the second now gets a `-2` suffix.
+- 🧪 55 tests (40 → 55): 15 breeding/lineage/CLI tests.
+
 - 📼 `mogwai feed --tape <session.jsonl>` — the pet eats your coding sessions: one agent session becomes one one-line summary memory (`steps · tools · errors`); rough nights (2+ errors) and ship/fix/deploy words weigh 0.75
 - 🥚 growth stages: egg → hatchling → sprout → young → adult → elder (age+bond gates), a distinct ASCII silhouette per stage; `MOGWAI_BIRTH_OVERRIDE` (days) for demos/tests
 - 💬 chat continuity: follow-ups ("more", "that", "--") ride the previous recall set; failed lookups never clobber it

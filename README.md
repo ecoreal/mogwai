@@ -94,6 +94,46 @@ $ '
 $ _
 ```
 
+## 🧬 breed — two brains, one egg
+
+```bash
+mogwai breed ~/brains/scout --name Pixel --path ~/brains/pixel
+```
+
+```
+🐣 Pixel hatched at ~/brains/pixel
+   Momo × Scout · 4 inherited memories · 1 fact
+   curiosity 55 · courage 47 · warmth 52 · sass 34 · focus 49
+```
+
+A child is not a copy. Traits are the **average of both parents**, nudged by a stable ±0.04 wobble — breed the same two with the same name and you get the same child, every time. It inherits the memories each parent held **most tightly** (`--inherit N`, default 6 per side, deduped), with the provenance written into the frontmatter, so `grep "from: Scout"` still works years later:
+
+```
+---
+ts: 2026-10-28T08:41:25.303Z
+importance: 0.75
+tags: ship
+from: Scout
+---
+
+shipped duel stream
+
+> inherited from Scout
+```
+
+Bond resets to 0 — trust is earned, never inherited — and the child's `parents.json` records both parents' names, birth dates, traits **and the commit hash they were read from**, so the egg can always be traced back to an exact moment in someone else's life. `LINEAGE.md` is the human-readable version, `git log` is the honest one.
+
+```
+$ mogwai family
+Pixel · 0d · bond 0/100   ← you are here
+├─ Momo · 42d
+│     cur  61 · cou  44 · war  50 · sas  31 · foc  45
+└─ Scout · 12d
+      cur  55 · cou  52 · war  44 · sas  38 · foc  61
+```
+
+It even works across machines: `mogwai breed git@github.com:you/scout-brain.git ...` clones the parent, reads it, and throws the clone away.
+
 ## 🧩 the nova suite
 
 mogwai is part of a small family of zero-dependency terminal tools:

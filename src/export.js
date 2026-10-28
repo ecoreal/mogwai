@@ -46,6 +46,9 @@ export function exportHtml(brain, now = Date.now()) {
   const coldDir = join(brain.path, 'memory', 'cold');
   const cold = existsSync(coldDir) ? readdirSync(coldDir).filter(f => f.endsWith('.md')).length : 0;
   const diary = existsSync(join(brain.path, 'DIARY.md')) ? readFileSync(join(brain.path, 'DIARY.md'), 'utf8') : '(no diary yet)';
+  // a bred pet carries its parents' names in the scrapbook, not just in git
+  let lineage = null;
+  try { lineage = JSON.parse(readFileSync(join(brain.path, 'parents.json'), 'utf8')).parents; } catch { lineage = null; }
 
   const memories = warm.slice(0, 30).map(m => {
     const pct = Math.round(m.importance * 100);
@@ -70,6 +73,7 @@ export function exportHtml(brain, now = Date.now()) {
 <h1>${esc(brain.state.name)}</h1>
 <div class="sub">${stage} · ${days} day${days === 1 ? '' : 's'} old · bond ${brain.state.bond}/100 · ${rings} growth rings · ${warm.length} warm memories · ${cold} hibernated</div>
 <pre>${esc(face)}</pre>
+${lineage ? `<h2>lineage</h2>\n<p class="sub">${lineage.map(p => esc(p.name)).join(' × ')}</p>` : ''}
 <h2>traits</h2>
 ${Object.entries(brain.traits).map(([k, v]) => bar(v, k)).join('\n')}
 <h2>diary</h2>

@@ -27,12 +27,17 @@ export function slug(s, n = 22) {
   return s.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-+|-+$/g, '').slice(0, n) || 'memory';
 }
 
-export function writeEpisodic(brain, text, { importance, tags = [] }) {
-  const ts = new Date();
+export function writeEpisodic(brain, text, { importance, tags = [], ts = new Date(), extra = {} } = {}) {
+  const when = ts instanceof Date ? ts : new Date(ts);
   const title = text.split('\n')[0].slice(0, 60);
-  const stamp = ts.toISOString().replace(/[-:T]/g, '').slice(0, 14);
-  const file = `${stamp}-${slug(title)}.md`;
-  const front = `---\nts: ${ts.toISOString()}\nimportance: ${importance}\ntags: ${tags.join(' ')}\n---\n\n`;
+  const stamp = when.toISOString().replace(/[-:T]/g, '').slice(0, 14);
+  // a second memory in the same second must not overwrite the first
+  let file = `${stamp}-${slug(title)}.md`;
+  for (let n = 2; existsSync(join(brain.path, EPI(), file)); n++) {
+    file = `${stamp}-${slug(title)}-${n}.md`;
+  }
+  const provenance = Object.entries(extra).map(([k, v]) => `${k}: ${v}`).join('\n');
+  const front = `---\nts: ${when.toISOString()}\nimportance: ${importance}\ntags: ${tags.join(' ')}${provenance ? `\n${provenance}` : ''}\n---\n\n`;
   writeFileSync(join(brain.path, EPI(), file), front + text.trim() + '\n');
   return file;
 }
@@ -43,7 +48,7 @@ export function listEpisodic(brain) {
   return readdirSync(dir).filter(f => f.endsWith('.md')).map(f => {
     const raw = readFileSync(join(dir, f), 'utf8');
     const { meta, body } = parseFront(raw);
-    return { file: f, ts: meta.ts || '', importance: Number(meta.importance) || 0.5, tags: (meta.tags || '').split(/\s+/).filter(Boolean), body };
+    return { file: f, ts: meta.ts || '', importance: Number(meta.importance) || 0.5, tags: (meta.tags || '').split(/\s+/).filter(Boolean), from: meta.from || '', body };
   }).sort((a, b) => (a.ts < b.ts ? 1 : -1));
 }
 

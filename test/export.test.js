@@ -51,3 +51,20 @@ test('exportBrain writes a file and reports bytes', () => {
   assert.ok(r.bytes > 1000);
   rmSync(dir, { recursive: true, force: true });
 });
+
+test('a bred brain shows its lineage in the scrapbook; a founder does not', async () => {
+  const { breed } = await import('../src/breed.js');
+  const momDir = mkdtempSync(join(tmpdir(), 'mogwai-exp-a-'));
+  const dadDir = mkdtempSync(join(tmpdir(), 'mogwai-exp-b-'));
+  const kidDir = mkdtempSync(join(tmpdir(), 'mogwai-exp-k-'));
+  rmSync(kidDir, { recursive: true, force: true });
+  initBrain(momDir, 'Momo');
+  initBrain(dadDir, 'Scout');
+  const kid = breed({ parentA: loadBrain(momDir), parentB: loadBrain(dadDir), childPath: kidDir, name: 'Pixel' }).brain;
+  const html = exportHtml(kid);
+  assert.match(html, /lineage/);
+  assert.match(html, /Momo × Scout/);
+  const founder = exportHtml(loadBrain(momDir));
+  assert.doesNotMatch(founder, /<h2>lineage<\/h2>/);
+  for (const d of [momDir, dadDir, kidDir]) rmSync(d, { recursive: true, force: true });
+});

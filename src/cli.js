@@ -21,6 +21,9 @@ usage:
   mogwai diary [--tail N | --all]            write today's page / read (no bond)
   mogwai watch                               the pet, alive (full-screen; q quits)
   mogwai adopt <git-url> [--path DIR]        adopt a shared brain (bond resets)
+  mogwai breed <other> --name Kid --path DIR  two brains, one egg (traits mixed,
+                                             memories inherited with provenance)
+  mogwai family [--depth N]                  who this pet came from, and from whom
   mogwai pet [--oneline]                     just the pet (PS1='$(mogwai pet --oneline) \\$ ')
   mogwai export [--out FILE]                 the brain as a shareable HTML scrapbook
   mogwai stats                               the pet, its traits, its growth rings
@@ -51,12 +54,15 @@ export async function main(argv) {
     else if (a === '--out') flags.out = rest[++i];
     else if (a === '--tape') flags.tape = rest[++i];
     else if (a === '--oneline') flags.oneline = true;
+    else if (a === '--from') flags.from = rest[++i];
+    else if (a === '--inherit') flags.inherit = Number(rest[++i]);
+    else if (a === '--depth') flags.depth = Number(rest[++i]);
     else if (a === '-h' || a === '--help') flags.help = true;
     else flags._.push(a);
   }
   let text = flags._.join(" ");
   const path = brainPath(flags.path);
-  if (!cmd || flags.help) { console.log(HELP); process.exitCode = cmd ? 0 : 1; return; }
+  if (!cmd || flags.help || cmd === '-h' || cmd === '--help' || cmd === 'help') { console.log(HELP); process.exitCode = cmd ? 0 : 1; return; }
 
   if (cmd === 'init') {
     const name = flags.name || 'Momo';
@@ -93,6 +99,41 @@ export async function main(argv) {
     return;
   }
 
+
+  if (cmd === 'breed') {
+    const [other] = flags._;
+    if (!other) { console.error('breed with whom? — mogwai breed <other-brain|git-url> --name Kid --path DIR'); process.exitCode = 1; return; }
+    const kidName = flags.name || 'Kid';
+    const childPath = flags.path;
+    if (!childPath) { console.error('breeding needs a new home for the egg — add --path DIR (never overwrites a life)'); process.exitCode = 1; return; }
+    const { loadParent, breed } = await import('./breed.js');
+    let mother;
+    try { mother = loadParent(flags.from || brainPath(null)); }
+    catch (e) { console.error(`breed: this brain — ${e.message}`); process.exitCode = 1; return; }
+    let father;
+    try { father = loadParent(other); }
+    catch (e) { console.error(`breed: ${e.message}`); process.exitCode = 1; return; }
+    if (mother.state.name === father.state.name && mother.path === father.path) {
+      console.error('breed: a pet cannot breed with itself — pick another brain'); process.exitCode = 1; return;
+    }
+    try {
+      const r = breed({ parentA: mother, parentB: father, childPath, name: kidName, inherit: Number.isFinite(flags.inherit) ? flags.inherit : undefined });
+      if (QUIET) {
+        console.log(`${r.brain.path} ${r.inherited} ${r.facts}`);
+      } else {
+        console.log(`🐣 ${kidName} hatched at ${r.brain.path}`);
+        console.log(`   ${mother.state.name} × ${father.state.name} · ${r.inherited} inherited memor${r.inherited === 1 ? 'y' : 'ies'} · ${r.facts} fact${r.facts === 1 ? '' : 's'}`);
+        console.log('   ' + Object.entries(r.brain.traits).map(([k, v]) => `${k} ${Math.round(v * 100)}`).join(' · '));
+        console.log(`   meet the family: mogwai family --path ${r.brain.path}`);
+      }
+    } catch (e) {
+      console.error(`breed: ${e.message}`);
+      process.exitCode = 1;
+    } finally {
+      if (father.temporary) { try { (await import('node:fs')).rmSync(father.path, { recursive: true, force: true }); } catch {} }
+    }
+    return;
+  }
 
   const brain = loadBrain(path);
   if (!brain) {
@@ -244,6 +285,17 @@ export async function main(argv) {
       return;
     }
     console.log(`🧠 pushed ${growthRings(path)} memories' worth of commits to ${origin.out.trim()}`);
+    return;
+  }
+
+  if (cmd === 'family') {
+    const { lineageOf, renderLineage } = await import('./breed.js');
+    const tree = lineageOf(brain, Number.isFinite(flags.depth) ? flags.depth : 4);
+    if (!tree.parents.length) {
+      console.log(QUIET ? 'founder' : `🧬 ${brain.state.name} is a founder — no parents.\n   make a family: mogwai breed <other-brain> --name Kid --path DIR`);
+      return;
+    }
+    console.log(renderLineage(tree));
     return;
   }
 
