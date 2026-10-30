@@ -189,3 +189,30 @@ test('claude-code dialect: envelope messages count as steps', async () => {
   assert.equal(s.tools, 1);
   assert.match(s.headline, /find the login bug/);
 });
+
+test('openclaw sessions are edible: toolCall blocks, toolResult, isError', async () => {
+  const { summarizeTape } = await import('../src/tape.js');
+  const lines = [
+    { type: 'session', version: 3 },
+    { type: 'message', message: { role: 'user', content: [{ type: 'text', text: 'the logout button 500s, find it' }] } },
+    { type: 'message', message: { role: 'assistant', content: [{ type: 'text', text: 'reading both handlers' }, { type: 'toolCall', id: 'c1', name: 'read', arguments: { path: 'a.ts' } }] } },
+    { type: 'message', message: { role: 'toolResult', toolCallId: 'c1', toolName: 'read', isError: false, content: [{ type: 'text', text: 'ok' }] } },
+    { type: 'message', message: { role: 'toolResult', toolCallId: 'c2', toolName: 'bash', isError: true, content: [{ type: 'text', text: 'npm test: 2 failing' }] } },
+  ].map(o => JSON.stringify(o)).join('\n');
+  const s = summarizeTape(lines);
+  assert.equal(s.headline, 'the logout button 500s, find it');
+  assert.equal(s.steps, 5, 'user + text + toolCall + toolResult + error; the session header is bookkeeping');
+  assert.equal(s.tools, 1);
+  assert.equal(s.errors, 1, 'isError:true is a rough patch, not a normal result');
+});
+
+test('an openclaw rough night weighs more than a smooth one', async () => {
+  const { summarizeTape } = await import('../src/tape.js');
+  const mk = (errs) => [
+    { type: 'message', message: { role: 'user', content: [{ type: 'text', text: 'refactor the parser' }] } },
+    ...Array.from({ length: errs }, (_, i) => ({ type: 'message', message: { role: 'toolResult', toolCallId: `c${i}`, isError: true, content: [{ type: 'text', text: `boom ${i}` }] } })),
+  ].map(o => JSON.stringify(o)).join('\n');
+  assert.equal(summarizeTape(mk(0)).importance, 0.55);
+  assert.equal(summarizeTape(mk(2)).importance, 0.75);
+  assert.deepEqual(summarizeTape(mk(2)).tags, ['lesson']);
+});

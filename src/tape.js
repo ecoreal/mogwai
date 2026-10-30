@@ -37,6 +37,28 @@ function fromClaudeCode(raw, out) {
   }
 }
 
+// openclaw / pi AgentSession: role decides the step, blocks decide the text.
+// `isError: true` on a toolResult is a failed tool — that is an error step.
+function fromOpenClaw(raw, out) {
+  const msg = raw.message;
+  if (!msg || !Array.isArray(msg.content)) return;
+  if (msg.role === 'toolResult') {
+    const body = Array.isArray(msg.content)
+      ? msg.content.filter(x => x?.text).map(x => x.text).join('\n')
+      : String(msg.content ?? '');
+    out.push({ type: msg.isError ? 'error' : 'tool_result', text: body.trim() });
+    return;
+  }
+  const role = msg.role === 'assistant' ? 'assistant' : 'user';
+  for (const b of msg.content) {
+    if (typeof b === 'string') { out.push({ type: role, text: b.trim() }); continue; }
+    if (!b || typeof b !== 'object') continue;
+    if (b.type === 'text' && b.text) out.push({ type: role, text: b.text.trim() });
+    else if (b.type === 'thinking' && b.thinking) out.push({ type: 'assistant', text: b.thinking.trim() });
+    else if (b.type === 'toolCall') out.push({ type: 'tool_use', text: `${b.name || 'tool'} ${JSON.stringify(b.arguments ?? {}).slice(0, 120)}` });
+  }
+}
+
 export function summarizeTape(jsonl) {
   const events = [];
   for (const line of String(jsonl).split('\n')) {
@@ -47,6 +69,8 @@ export function summarizeTape(jsonl) {
     if (!raw || typeof raw !== 'object') continue;
     if (TYPES.has(raw.type) && raw.text != null) {
       events.push({ type: raw.type, text: String(raw.text).trim() });
+    } else if (raw.type === 'message') {
+      fromOpenClaw(raw, events); // OpenClaw / pi AgentSession
     } else if (raw.type === 'error' || raw.level === 'error') {
       events.push({ type: 'error', text: String(raw.message ?? raw.error ?? 'error').trim() });
     } else {

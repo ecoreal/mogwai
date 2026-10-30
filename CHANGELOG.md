@@ -2,6 +2,8 @@
 
 ## Unreleased
 
+- 📼 `mogwai feed --tape` now also eats **OpenClaw / pi** `AgentSession` JSONL (`type:'message'` envelopes, `toolCall` blocks, `toolResult` with `isError` → an error step), so the pet reads the same three dialects tape does. A session with two or more failed tools is still a rough night (importance 0.75, tag `lesson`).
+
 - 🧬 `mogwai breed <other> --name Kid --path DIR` — two brains, one egg: traits are the parents' average plus a deterministic ±0.04 wobble (same parents + same name ⇒ same child), the strongest `--inherit N` memories from each side are carried over with `from:` provenance in the frontmatter and a `> inherited from <name>` line in the body, facts are union-deduped (cap 24), bond resets to 0. `parents.json` records each parent's name, birth, traits and commit hash; `LINEAGE.md` tells the story. Works with a local path or a git URL (cloned to a temp dir, read, discarded). Never overwrites an existing life.
 - 🧭 `mogwai family [--depth N]` — the ancestry tree: `← you are here`, both parents with their traits, grandparents when their brains are still on disk, and an `(elsewhere)` marker when a parent's brain has moved on. Founders get a friendly nudge, not an error.
 - 📕 `mogwai export` now shows the lineage section for bred pets (and stays silent for founders).

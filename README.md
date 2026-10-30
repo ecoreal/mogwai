@@ -68,7 +68,8 @@ Agent memory in 2026 is either a cloud vector database or an opaque file you'll 
 ```
 mogwai init [--name Gizmo] [--path DIR]   create the brain (a git repo)
 mogwai feed "shipped v0.1"                it remembers, and grows a little
-mogwai feed --tape session.jsonl          it eats your coding sessions (agent JSONL)
+mogwai feed --tape session.jsonl          it eats your coding sessions (tape-native,
+                                          Claude Code or OpenClaw/pi JSONL)
 mogwai remember "coffee goes in cups"     a fact for the semantic shelf
 mogwai forget <word>                      deliberate, reversible forgetting
 mogwai diary                              today's page, in its voice
@@ -92,6 +93,20 @@ $ '
 ```
 ( o.o ) Momo · sprout · curious
 $ _
+```
+
+### 📼 what it can eat
+
+`mogwai feed --tape` reads the session files your agent already writes — the same
+three dialects [tape](https://github.com/ecoreal/tape) reads: **tape-native**,
+**Claude Code** (`~/.claude/projects/**/*.jsonl`) and **OpenClaw / pi**
+`AgentSession` files (a failed tool call there counts as an error, so a rough
+night weighs more). One session becomes one memory: `steps · tools · errors`.
+
+```bash
+mogwai feed --tape ~/.claude/projects/-home-me-api/0f2c….jsonl
+# 🐾 THAT goes on the first page.
+#    📼 25 steps · 8 tools · 1 error
 ```
 
 ## 🧬 breed — two brains, one egg
