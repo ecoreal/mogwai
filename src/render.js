@@ -1,13 +1,15 @@
 // ASCII pet + bars. Faces depend on mood; the pet visibly changes over time.
+// Two variants per mood — which one you get is a coin flip, so the pet does
+// not feel like a looping GIF.
 import { stageOf } from './growth.js';
 const FACES = {
-  curious:  [' /\\_/\\', '( o.o )', ' > ^ <'],
-  fearless: [' /\\_/\\', '( >.< )', ' /\\__/\\'],
-  cozy:     [' /\\_/\\', '( ^.^ )', ' > ~ <'],
-  smug:     [' /\\_/\\', '( ¬.¬ )', ' > = <'],
-  'in-the-zone': [' /\\_/\\', '( -.- )', ' > _ <'],
-  sleepy:   [' /\\_/\\', '( -.-)z', ' > z <'],
-  proud:    [' /\\_/\\', '( ^o^ )', ' > v <'],
+  curious:  [[' /\\_/\\', '( o.o )', ' > ^ <'], [' /\\_/\\', '( o.O )', ' > ? <']],
+  fearless: [[' /\\_/\\', '( >.< )', ' /\\__/\\'], [' /\\_/\\', '( >:3 )', ' /\\__/\\']],
+  cozy:     [[' /\\_/\\', '( ^.^ )', ' > ~ <'], [' /\\_/\\', '( ^ω^ )', ' > ~ <']],
+  smug:     [[' /\\_/\\', '( ¬.¬ )', ' > = <'], [' /\\_/\\', '( ¬‿¬ )', ' > = <']],
+  'in-the-zone': [[' /\\_/\\', '( -.- )', ' > _ <'], [' /\\_/\\', '( -_- )', ' > _ <']],
+  sleepy:   [[' /\\_/\\', '( -.-)z', ' > z <'], [' /\\_/\\', '( z.z )', ' > z <']],
+  proud:    [[' /\\_/\\', '( ^o^ )', ' > v <'], [' /\\_/\\', '( \\o/ )', ' > v <']],
 };
 
 // one silhouette per life stage — single-width, distinct shapes
@@ -26,7 +28,8 @@ export function petStage(name, stage, mood) {
 }
 
 export function pet(name, mood) {
-  const face = FACES[mood] || FACES.curious;
+  const variants = FACES[mood] || FACES.curious;
+  const face = variants[Math.floor(Math.random() * variants.length)];
   return face.map(l => '  ' + l).join('\n') + `   ← ${name}, feeling ${mood}`;
 }
 
